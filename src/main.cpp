@@ -35,5 +35,4 @@ void loop() {
         if (!Ping.ping(PING_HOST))
             Serial.println(String("Ping ") + PING_HOST.toString() + " error!");
     }
-    Serial.println(*rtc.get());
 }

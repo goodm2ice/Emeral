@@ -1,5 +1,6 @@
 #pragma once
 
+#include <ctime>
 #include <stdint.h>
 
 #include <ESP8266WiFi.h>
@@ -7,8 +8,6 @@
 
 #define ARDUINOJSON_USE_LONG_LONG 1
 #include <ArduinoJson.h>
-
-#include <DateTime.hpp>
 
 #define RTC_HOST "worldtimeapi.org"
 #define RTC_PORT 80
@@ -29,16 +28,14 @@ namespace Emeral {
             String timezone;
             time_t last_update;
             time_t last_time;
-            DateTime* dt;
 
-            void update_local();
             static time_t const cur_time();
 
         public:
             WebRTC(String timezone);
 
-            bool update();
-
-            const DateTime const* get() const;
+            const tm const* update();
+            const tm const* get() const;
+            const time_t getUnixTime() const;
     };
 }
