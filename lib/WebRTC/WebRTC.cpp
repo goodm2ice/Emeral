@@ -2,32 +2,49 @@
 
 using namespace Emeral;
 
-void RTC_Init(String timezone) {
-    RTC_timeZone = timezone;
-    setSyncProvider(Emeral::RTC_updateTime);
-    setSyncInterval(RTC_UPDATE_INTERVAL);
+WebRTC::WebRTC(String timezone) {
+    this->timezone = timezone;
+    last_update = cur_time();
+    last_time = 0;
+    dt = new DateTime(last_update);
 }
 
-time_t RTC_updateTime() {
+time_t const WebRTC::cur_time() { return millis() / 1000; }
+
+void WebRTC::update_local() {
+    *dt = last_time + (cur_time() - last_update);
+}
+
+bool WebRTC::update() {
     WiFiClient http;
     http.setTimeout(RTC_DEFAULT_TIMEOUT);
-    if (!http.connect(RTC_HOST, RTC_PORT))
-        return 0;
+    if (!http.connect(RTC_HOST, RTC_PORT)) {
+        update_local();
+        return false;
+    }
 
-    http.println(MAKE_RTC_REQUEST(RTC_timeZone));
-    uint64_t sys_time = millis() / 1000;
+    http.println(MAKE_RTC_REQUEST(timezone));
+    last_update = cur_time();
     uint64_t out = millis() + RTC_DEFAULT_TIMEOUT;
     while(!http.available())
-        if (out - millis() < 0)
-            return 0;
+        if (out - millis() < 0) {
+            update_local();
+            return false;
+        }
 
     http.readStringUntil('{');
     String payload = String("{") + http.readStringUntil('\r');
     DynamicJsonDocument doc(DOC_MEMORY);
 
     DeserializationError error = deserializeJson(doc, payload);
-    if (error != DeserializationError::Code::Ok)
-        return 0;
+    if (error != DeserializationError::Code::Ok) {
+        update_local();
+        return false;
+    }
 
-    return (time_t)doc[UNIX_TIME];
+    last_time = doc[UNIX_TIME];
+
+    return true;
 }
+
+const DateTime const* WebRTC::get() const { return dt; }
