@@ -9,18 +9,27 @@ DateTime::DateTime() {
 }
 
 DateTime::DateTime(time_t const): unix_time(unix_time) {}
-DateTime::DateTime(DateTime const& dt): unix_time(dt.unix_time) {}
+
+DateTime::DateTime(DateTime const& dt):
+    unix_time(dt.unix_time),
+    year(dt.year),
+    month(dt.month),
+    day(dt.day),
+    hour(dt.hour),
+    minute(dt.minute),
+    second(dt.second) {}
 
 DateTime::DateTime(const char* str): DateTime(fromString(str)) {}
 #ifdef Arduino_h
     DateTime::DateTime(String const str): DateTime(fromString(str)) {}
 #endif
 
-DateTime::DateTime(unsigned short year, unsigned char month, unsigned char day, unsigned char hour, unsigned char minute, unsigned char second) {
+DateTime::DateTime(unsigned short year, unsigned char month, unsigned char day, unsigned char hour, unsigned char minute, unsigned char second):
+        year(year), month(month), day(day), hour(hour), minute(minute), second(second) {
     //
 }
 
-// ------------------------------ Maths -------------------------------
+#pragma region DateTime math operations
 
 DateTime& DateTime::move(long long const count, DateTimePart_t const part) {
     if (count == 0) return *this;
@@ -60,7 +69,8 @@ DateTime& DateTime::operator-=(DateTime const& dt)  { unix_time -= dt.unix_time;
 DateTime& DateTime::operator-=(time_t const time)  { unix_time -= time; return *this; }
 DateTime& DateTime::operator-=(DateTimePart_t const part) { return move(-1, part); }
 
-// --------------------------- Comparations ---------------------------
+#pragma endregion
+#pragma region DateTime comparations
 
 bool const DateTime::operator==(DateTime const& dt) const { return unix_time == dt.unix_time; }
 bool const DateTime::operator==(time_t const dt) const  { return unix_time == dt; }
@@ -80,38 +90,14 @@ bool const DateTime::operator<=(time_t const dt) const { return unix_time <= dt;
 bool const DateTime::operator>=(DateTime const& dt) const { return unix_time >= dt.unix_time; }
 bool const DateTime::operator>=(time_t const dt) const { return unix_time >= dt; }
 
-// --------------------------- Convertation ---------------------------
-
-DateTimeStruct const DateTime::toStruct(time_t const unix_time) {
-    DateTimeStruct out;
-    unsigned short tmp = 0;
-    time_t time = unix_time;
-    // Get year
-    while (time > (tmp = getYearDays(out.year))) time -= tmp * DAY_DURATION, out.year++;
-    // Get month
-    while (time > (tmp = getMonthDays(out.year, out.month))) time -= tmp * DAY_DURATION, out.month++;
-    // Get day
-    out.day += time / DAY_DURATION;
-    time %= DAY_DURATION;
-    // Get hour
-    out.hour += time / HOUR_DURATION;
-    time %= HOUR_DURATION;
-    // Get minute
-    out.minute += time / MINUTE_DURATION;
-    time %= MINUTE_DURATION;
-    // Get second
-    out.second += time;
-
-    return out;
-}
-
-DateTimeStruct const DateTime::toStruct(DateTime const dt) { toStruct(dt.unix_time); }
+#pragma endregion
+#pragma region DateTime conversations
 
 static DateTime const fromString(const char* str) {
     unsigned short year;
     unsigned char month, day, hour, minute, second;
     if(sscanf(str, STRING_DATE_TEMPLATE, &year, &month, &day, &hour, &minute, &second) != 6)
-        throw "";
+        throw "Input incorrect!";
     return DateTime(year, month, day, hour, minute, second);
 }
 
@@ -119,12 +105,10 @@ static DateTime const fromString(const char* str) {
     static DateTime const fromString(String const str) { return fromString(str.c_str()); }
 #endif
 
-DateTime::operator DateTimeStruct() const { return toStruct(unix_time); }
-
 DateTime::operator char*() const {
-    DateTimeStruct ts = *this;
-
     char* out = new char[sizeof(STRING_DATE_EXAMPLE)];
-    sprintf(out, STRING_DATE_TEMPLATE, ts.year, ts.month, ts.day, ts.hour, ts.minute, ts.second);
+    sprintf(out, STRING_DATE_TEMPLATE, year, month, day, hour, minute, second);
     return out;
 }
+
+#pragma endregion
