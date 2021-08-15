@@ -20,40 +20,6 @@ DateTime::DateTime(unsigned short year, unsigned char month, unsigned char day, 
     //
 }
 
-// ---------------------------- Get parts -----------------------------
-
-unsigned short const DateTime::getYear(time_t const unix_time) {
-    time_t time = unix_time, tmp;
-    unsigned short year = 1970;
-    while (time > (tmp = getYearDays(year))) time -= tmp * DAY_DURATION, year++;
-    return year;
-}
-
-unsigned char const DateTime::getMonth(time_t const unix_time) {
-    time_t time = unix_time, tmp;
-    unsigned short year = 1970;
-    unsigned char month = 0;
-    while (time > (tmp = getYearDays(year))) time -= tmp * DAY_DURATION, year++;
-    while (time > (tmp = getMonthDays(year, month))) time -= tmp * DAY_DURATION, month++;
-    return month;
-}
-
-bool const DateTime::isLeapYear(time_t const year) {
-    return (year % 400 == 0) || ((year % 100 != 0) && (year % 4 == 0));
-}
-
-unsigned short const DateTime::getYearDays(time_t const year) {
-    return isLeapYear(year) ? 366 : 365;
-}
-
-unsigned char const DateTime::getMonthDays(unsigned short const year, unsigned char const month) {
-    if (month == 1)
-        return isLeapYear(year) ? 29 : 28;
-    if (month < 7)
-        return 31 - month % 2;
-    return 30 + month % 2;
-}
-
 // ------------------------------ Maths -------------------------------
 
 DateTime& DateTime::move(long long const count, DateTimePart_t const part) {

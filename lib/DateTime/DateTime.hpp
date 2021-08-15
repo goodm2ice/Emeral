@@ -2,17 +2,11 @@
 
 #include <stdio.h>
 
+#include "DateTimeBuilder.hpp"
 #include "DateTimeStruct.hpp"
-
-#define MINUTE_DURATION (60)
-#define HOUR_DURATION (60 * MINUTE_DURATION)
-#define DAY_DURATION (24 * HOUR_DURATION)
-#define WEEK_DURATION (7 * DAY_DURATION)
 
 #define STRING_DATE_TEMPLATE "%04hu-%02hhu-%02hhuT%02hhu:%02hhu:%02hhu\0"
 #define STRING_DATE_EXAMPLE "0000-00-00T00:00:00"
-
-typedef unsigned long long time_t;
 
 typedef uint8_t DateTimePartInt_t;
 enum DateTimePart_t { SECOND = 1, MINUTE = 2, HOUR = 4, DAY = 8, WEEK = 16, MONTH = 32, YEAR = 64 };
@@ -37,18 +31,6 @@ class DateTime {
             DateTime(String const str);
         #endif
         DateTime(unsigned short year, unsigned char month, unsigned char day, unsigned char hour, unsigned char minute, unsigned char second);
-
-        // ---------------------------- Get parts -----------------------------
-
-        static unsigned short const getYear(time_t const unix_time);
-
-        static unsigned char const getMonth(time_t const unix_time);
-
-        static bool const isLeapYear(time_t const year);
-
-        static unsigned short const getYearDays(time_t const year);
-
-        static unsigned char const getMonthDays(unsigned short const year, unsigned char const month);
 
         // ------------------------------ Maths -------------------------------
 
